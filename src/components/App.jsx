@@ -14,17 +14,24 @@ const GlobalStyle = createGlobalStyle`
    color: '#010101'; 
   }
 `;
+const KEY_STORAGE = 'contacts';
 export class App extends Component {
   state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
+    contacts: [],
     filter: '',
   };
-
+  componentDidMount() {
+    if (localStorage.getItem(KEY_STORAGE)) {
+      this.setState({
+        contacts: JSON.parse(localStorage.getItem(KEY_STORAGE)),
+      });
+    }
+  }
+  componentDidUpdate(_, prevState) {
+    if (prevState.contacts !== this.state.contacts) {
+      localStorage.setItem(KEY_STORAGE, JSON.stringify(this.state.contacts));
+    }
+  }
   addContact = (values, { resetForm }) => {
     const newContact = { id: nanoid(3), ...values };
     const newContactName = newContact.name.toLowerCase();
@@ -53,10 +60,10 @@ export class App extends Component {
   };
 
   render() {
-    const { filter } = this.state;
+    const { filter, contacts } = this.state;
     const { addContact, onFilterChange, deleteContact } = this;
-    const visibleContacts = this.state.contacts.filter(abonent =>
-      abonent.name.toLowerCase().includes(this.state.filter)
+    const visibleContacts = contacts.filter(abonent =>
+      abonent.name.toLowerCase().includes(filter)
     );
 
     return (
@@ -64,12 +71,18 @@ export class App extends Component {
         <GlobalStyle />
         <h1>PhoneBook</h1>
         <ContactForm onSubmit={addContact} />
-        <h2>Contacts</h2>
-        <Filter value={filter} onFilterChange={onFilterChange} />
-        <Contaclist
-          listAbonents={visibleContacts}
-          onDeleteClick={deleteContact}
-        />
+        <h2>Contacts :</h2>
+        {contacts.length === 0 ? (
+          <h2>You have no contacts saved</h2>
+        ) : (
+          <>
+            <Filter value={filter} onFilterChange={onFilterChange} />
+            <Contaclist
+              listAbonents={visibleContacts}
+              onDeleteClick={deleteContact}
+            />
+          </>
+        )}
       </div>
     );
   }
